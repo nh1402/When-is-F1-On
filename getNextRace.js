@@ -29,7 +29,8 @@
             }
         }
         catch (error) {
-            displayError(error);
+            displayError();
+            console.log(error);
         }
     })();
 
@@ -55,7 +56,8 @@
             }
 
         } catch (error) {
-            displayError(error);
+            displayError();
+            console.log(error);
         }
     })();
 
@@ -71,11 +73,13 @@
         document.getElementById(raceSeries).appendChild(div);
     }
 
-    function displayError(errorText) {
+    function displayError() {
+        const errorID = "error";
         let div = document.createElement("h2");
-        div.textContent = errorText;
+        div.textContent = "An error occurred while retrieving race results";
         div.style.color = "blue";
         div.style.textAlign = "center";
         div.style.padding = "20px";
+        document.getElementById(errorID).appendChild(div);
     }
 }());
