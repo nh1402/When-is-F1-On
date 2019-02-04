@@ -2,29 +2,32 @@
     let currentDate = new Date();
     (async function () {
         try {
-            let url = "f12019seasoncalendar.ics";
-            let response = await fetch(url);
+            let url = "https://api.formula1.com/v1/event-tracker";
+            const request = new Request(url, {
+                headers: new Headers({
+                    'apikey': 'qPgPPRJyGCIPxFT3el4MF7thXHyJCzAP',
+                    'locale': 'en'
+                })
+            })
+            let response = await fetch(request);
             let text = await response.text();
+            let f1RaceData = JSON.parse(text);
+            // Sort race session dates by earliest to latest.
+            f1RaceData.seasonContext.timetables.sort(function (a, b) {
+                return new Date(a.startTime) - new Date(b.startTime);
+            });
+            for (let i = 0; i < f1RaceData.seasonContext.timetables.length; i++) {
 
-            const EVENTNUMBER = 1;
-            const EVENTSTARTDATE = 3;
-            const EVENTSUMMARY = 1;
-            const EVENT_VALUE = 3;
+                f1RaceData.seasonContext.timetables[i].gmtOffset.replace(':', '');
+                let gmtOffset = "GMT" + f1RaceData.seasonContext.timetables[i].gmtOffset;
 
-            // Convert the ICS file to an object to read.
-            let jCalData = ICAL.parse(text);
-            let comp = new ICAL.Component(jCalData[2]);
-            let season = comp.toJSON();
+                let sessionDate = new Date(f1RaceData.seasonContext.timetables[i].startTime);
+                // Convert time by adding timezone offset
+                sessionDate = new Date(sessionDate + " " + gmtOffset);
 
-            for (let i = 0; i < season.length; i++) {
-                // Get the next session time from ics file.
-                let sessionDateTime = new Date(season[i][EVENTNUMBER][EVENTSTARTDATE][EVENT_VALUE]);
-                // Get the next race name (and session type);
-                let sessionName = season[i][EVENTNUMBER][EVENTSUMMARY][EVENT_VALUE];
-                // Check session date against current date to see if it is the next race session.
-                if (currentDate < sessionDateTime) {
-                    displayNextRaceTime(sessionName, sessionDateTime.toString(), "f1");
-                    break;
+                if (currentDate < sessionDate) {
+                    displayNextRaceTime(f1RaceData.race.meetingOfficialName + " " + f1RaceData.seasonContext.timetables[i].description, sessionDate.toString(), "f1");
+                    return;
                 }
             }
         }
