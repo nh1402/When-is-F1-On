@@ -39,32 +39,36 @@
 
     (async function () {
         try {
-            let url2 = "http://www.fiaformula2.com/ajax/SeasonSessions.ashx";
-            let response = await fetch(url2);
+            let url = "https://api.formula1.com/v1/f2f3-fom-results/races?website=f2";
+            const request = new Request(url, {
+                headers: new Headers({
+                    'apikey': 'Ij4Lwi0yPPhuTstW1hhmmd9ntwTGhjNe',
+                    'locale': 'en'
+                })
+            })
+            let response = await fetch(request);
             let text = await response.text();
-            let f2seasonData = JSON.parse(text);
+            let f2RaceData = JSON.parse(text);
 
-            for (let i = 0; i < f2seasonData.season.length; i++) {
-                for (let j = 0; j < f2seasonData.season[i].sessions.length; j++) {
-                    // Convert date stored in JSON to valid javascript date
-                    let [date, time] = f2seasonData.season[i].sessions[j].racestartgmt.toString().split(' ');
-                    let [day, month, year] = date.split('/');
-                    let [hours, mins, secs] = time.split(':');
-                    let dRaceSession = new Date(Date.UTC(year, month - 1, day, hours, mins, secs));
-                    if (currentDate < dRaceSession) {
-                        displayNextRaceTime("Formula 2 " + f2seasonData.season[i].name + " " + f2seasonData.season[i].sessions[j].sessionname, dRaceSession, "f2");
+            for (let i = 0; i < f2RaceData.Races.length; i++) {
+                for (let j = 0; j < f2RaceData.Races[i].Sessions.length; j++) {
+
+                    let sessionDate = new Date(f2RaceData.Races[i].Sessions[j].SessionStartTime);
+
+                    if (currentDate < sessionDate) {
+                        displayNextRaceTime("Formula 2 " + f2RaceData.Races[i].CircuitShortName + " " + f2RaceData.Races[i].Sessions[j].SessionName, sessionDate.toString(), "f2");
                         return;
                     }
                 }
             }
-
+        
         } catch (error) {
             displayError();
             console.log(error);
         }
     })();
 
-
+    
     // Display next race in the Extension.
     function displayNextRaceTime(raceName, nextSessionTime, raceSeries) {
         let div = document.createElement("h2");
